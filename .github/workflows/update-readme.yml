@@ -31,6 +31,8 @@ jobs:
           MAX_DISCOVERY_SEARCH_PAGES: 5
           X_URL: https://x.com/SreeArpitaPatra
           LINKEDIN_URL: https://www.linkedin.com/in/sree-arpita-patra/
+          EMAIL: sreearpitapatra@gmail.com
+          WEBSITE_URL: https://sreearpita.me
         run: npm run generate
 
       - name: Commit README changes
