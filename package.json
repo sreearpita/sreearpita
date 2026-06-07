@@ -1,0 +1,13 @@
+{
+  "name": "sreearpita",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/generate-readme.mjs",
+    "check": "node --check scripts/generate-readme.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
