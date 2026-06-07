@@ -417,7 +417,13 @@ async function collectStats() {
     request(`/users/${USERNAME}`).then(({ data }) => data),
     collectRepositories(),
   ]);
-  const { ownedRepos, trackedRepos } = repoCollections;
+  const {
+    ownedRepos,
+    configuredOrgRepos,
+    discoveredRepos,
+    discoveredOnlyRepos,
+    trackedRepos,
+  } = repoCollections;
 
   const scannableRepos = trackedRepos.filter((repo) => !repo.disabled && !repo.archived);
   const repoStats = await mapLimit(scannableRepos, CONCURRENCY, collectRepoStats);
@@ -444,6 +450,9 @@ async function collectStats() {
   return {
     profile,
     ownedRepos,
+    configuredOrgRepos,
+    discoveredRepos,
+    discoveredOnlyRepos,
     trackedRepos,
     repoStats,
     activeRepoStats: activeRepoStatsWithDeltas,
@@ -539,10 +548,11 @@ function renderActiveProjects(stats) {
 }
 
 function renderContributionScopeNote(stats) {
-  if (stats.discoveredOnlyRepos.length === 0) return "";
+  const discoveredOnlyRepos = stats.discoveredOnlyRepos ?? [];
+  if (discoveredOnlyRepos.length === 0) return "";
 
   return `\n\n_Includes ${formatNumber(
-    stats.discoveredOnlyRepos.length,
+    discoveredOnlyRepos.length,
   )} public contribution repositories discovered from recent GitHub activity._`;
 }
 
