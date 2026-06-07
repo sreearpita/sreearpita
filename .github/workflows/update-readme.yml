@@ -25,6 +25,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_USERNAME: sreearpita
+          GITHUB_ORGS: NUS-MTechSE-DMSS
+          GITHUB_EXCLUDED_REPOS: ""
+          GITHUB_EXCLUDED_ORGS: ""
+          MAX_DISCOVERY_SEARCH_PAGES: 5
           X_URL: https://x.com/SreeArpitaPatra
           LINKEDIN_URL: https://www.linkedin.com/in/sree-arpita-patra/
         run: npm run generate

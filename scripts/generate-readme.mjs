@@ -1,6 +1,13 @@
 import { writeFile } from "node:fs/promises";
 
 const USERNAME = process.env.GITHUB_USERNAME ?? "sreearpita";
+const TRACKED_ORGS = parseCsv(process.env.GITHUB_ORGS ?? "NUS-MTechSE-DMSS");
+const EXCLUDED_REPOS = new Set(
+  parseCsv(process.env.GITHUB_EXCLUDED_REPOS).map((repo) => repo.toLowerCase()),
+);
+const EXCLUDED_ORGS = new Set(
+  parseCsv(process.env.GITHUB_EXCLUDED_ORGS).map((org) => org.toLowerCase()),
+);
 const X_URL = process.env.X_URL ?? "https://x.com/SreeArpitaPatra";
 const LINKEDIN_URL =
   process.env.LINKEDIN_URL ?? "https://www.linkedin.com/in/sree-arpita-patra/";
@@ -8,6 +15,9 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const ALLOW_UNAUTHENTICATED = process.env.ALLOW_UNAUTHENTICATED === "1";
 const API_BASE = "https://api.github.com";
 const MAX_DETAILED_COMMITS = Number(process.env.MAX_DETAILED_COMMITS ?? 500);
+const MAX_DISCOVERY_SEARCH_PAGES = Number(
+  process.env.MAX_DISCOVERY_SEARCH_PAGES ?? 5,
+);
 const CONCURRENCY = Number(process.env.GITHUB_API_CONCURRENCY ?? 5);
 
 const LANGUAGE_COLORS = {
@@ -32,6 +42,13 @@ if (!GITHUB_TOKEN && !ALLOW_UNAUTHENTICATED) {
   throw new Error(
     "GITHUB_TOKEN is required for README generation. Set GITHUB_TOKEN, or set ALLOW_UNAUTHENTICATED=1 for a rate-limited public API run.",
   );
+}
+
+function parseCsv(value = "") {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 const today = new Date();
@@ -125,6 +142,37 @@ async function getEndpointCount(path, params = {}) {
 async function getSearchCount(query) {
   const { data } = await request("/search/issues", { q: query, per_page: 1 });
   return data.total_count ?? 0;
+}
+
+async function searchItems(path, query, params = {}) {
+  const results = [];
+  let page = 1;
+
+  while (page <= MAX_DISCOVERY_SEARCH_PAGES) {
+    const { data } = await request(path, {
+      per_page: 100,
+      ...params,
+      q: query,
+      page,
+    });
+    const items = data?.items ?? [];
+    if (items.length === 0) break;
+
+    results.push(...items);
+    if (items.length < 100) break;
+    page += 1;
+  }
+
+  return results;
+}
+
+async function safeSearchItems(path, query, params = {}) {
+  try {
+    return await searchItems(path, query, params);
+  } catch (error) {
+    console.warn(`Skipping discovery query "${query}": ${error.message}`);
+    return [];
+  }
 }
 
 async function mapLimit(items, limit, mapper) {
@@ -251,17 +299,127 @@ async function collectLanguageBytes(activeRepoStats) {
     .slice(0, 5);
 }
 
-async function collectStats() {
-  const [profile, repos] = await Promise.all([
-    request(`/users/${USERNAME}`).then(({ data }) => data),
+function repoFullNameFromRepositoryUrl(repositoryUrl) {
+  if (!repositoryUrl) return null;
+
+  const marker = "/repos/";
+  const markerIndex = repositoryUrl.indexOf(marker);
+  if (markerIndex === -1) return null;
+
+  return repositoryUrl.slice(markerIndex + marker.length);
+}
+
+function addRepoName(repoNames, repoName) {
+  if (!repoName) return;
+  repoNames.add(repoName);
+}
+
+async function discoverContributionRepoNames() {
+  const [commitItems, prItems, issueItems] = await Promise.all([
+    safeSearchItems(
+      "/search/commits",
+      `author:${USERNAME} committer-date:>=${lastYearDate}`,
+      { sort: "committer-date", order: "desc" },
+    ),
+    safeSearchItems(
+      "/search/issues",
+      `author:${USERNAME} type:pr created:>=${lastYearDate}`,
+      { sort: "created", order: "desc" },
+    ),
+    safeSearchItems(
+      "/search/issues",
+      `author:${USERNAME} type:issue created:>=${lastYearDate}`,
+      { sort: "created", order: "desc" },
+    ),
+  ]);
+
+  const repoNames = new Set();
+
+  for (const item of commitItems) {
+    addRepoName(repoNames, item.repository?.full_name);
+  }
+
+  for (const item of [...prItems, ...issueItems]) {
+    addRepoName(repoNames, repoFullNameFromRepositoryUrl(item.repository_url));
+  }
+
+  return repoNames;
+}
+
+async function discoverContributionRepos() {
+  const repoNames = await discoverContributionRepoNames();
+  const repos = await mapLimit([...repoNames], CONCURRENCY, async (fullName) => {
+    const { data } = await safeRequest(`/repos/${fullName}`);
+    return data;
+  });
+
+  return repos.filter(Boolean);
+}
+
+function isExcludedRepo(repo) {
+  const fullName = repo.full_name.toLowerCase();
+  const owner = repo.owner?.login?.toLowerCase() ?? fullName.split("/")[0];
+  return EXCLUDED_REPOS.has(fullName) || EXCLUDED_ORGS.has(owner);
+}
+
+async function collectRepositories() {
+  const [ownedReposRaw, orgRepoGroups, discoveredReposRaw] = await Promise.all([
     paginate(`/users/${USERNAME}/repos`, {
       type: "owner",
       sort: "updated",
       direction: "desc",
     }),
+    Promise.all(
+      TRACKED_ORGS.map((org) =>
+        paginate(`/orgs/${org}/repos`, {
+          type: "public",
+          sort: "updated",
+          direction: "desc",
+        }),
+      ),
+    ),
+    discoverContributionRepos(),
   ]);
 
-  const scannableRepos = repos.filter((repo) => !repo.disabled && !repo.archived);
+  const configuredOrgReposRaw = orgRepoGroups.flat();
+  const ownedRepoNames = new Set(ownedReposRaw.map((repo) => repo.full_name));
+  const configuredOrgRepoNames = new Set(
+    configuredOrgReposRaw.map((repo) => repo.full_name),
+  );
+
+  const ownedRepos = ownedReposRaw.filter((repo) => !isExcludedRepo(repo));
+  const configuredOrgRepos = configuredOrgReposRaw.filter(
+    (repo) => !isExcludedRepo(repo),
+  );
+  const discoveredRepos = discoveredReposRaw.filter((repo) => !isExcludedRepo(repo));
+  const discoveredOnlyRepos = discoveredRepos.filter(
+    (repo) =>
+      !ownedRepoNames.has(repo.full_name) &&
+      !configuredOrgRepoNames.has(repo.full_name),
+  );
+
+  const reposByFullName = new Map();
+  for (const repo of [...ownedRepos, ...configuredOrgRepos, ...discoveredRepos]) {
+    reposByFullName.set(repo.full_name, repo);
+  }
+
+  return {
+    ownedRepos,
+    configuredOrgRepos,
+    discoveredRepos,
+    discoveredOnlyRepos,
+    trackedRepos: [...reposByFullName.values()],
+  };
+}
+
+async function collectStats() {
+  const [profile, repoCollections] = await Promise.all([
+    request(`/users/${USERNAME}`).then(({ data }) => data),
+    collectRepositories(),
+  ]);
+  const { ownedRepos, trackedRepos } = repoCollections;
+
+  const scannableRepos = trackedRepos.filter((repo) => !repo.disabled && !repo.archived);
   const repoStats = await mapLimit(scannableRepos, CONCURRENCY, collectRepoStats);
   const activeRepoStats = repoStats.filter((entry) => entry.lastYearCommits > 0);
 
@@ -285,7 +443,8 @@ async function collectStats() {
 
   return {
     profile,
-    repos,
+    ownedRepos,
+    trackedRepos,
     repoStats,
     activeRepoStats: activeRepoStatsWithDeltas,
     languages,
@@ -300,8 +459,18 @@ async function collectStats() {
 }
 
 function renderStatsTable(stats) {
-  const publicRepos = stats.profile.public_repos ?? stats.repos.length;
-  const stars = stats.repos.reduce((sum, repo) => sum + repo.stargazers_count, 0);
+  const publicRepos = stats.profile.public_repos ?? stats.ownedRepos.length;
+  const trackedOrgRepos = Math.max(
+    stats.trackedRepos.length - stats.ownedRepos.length,
+    0,
+  );
+  const publicRepoLabel =
+    trackedOrgRepos > 0
+      ? `📦 **${formatNumber(publicRepos)}** public repos + **${formatNumber(
+          trackedOrgRepos,
+        )}** org repos tracked`
+      : `📦 **${formatNumber(publicRepos)}** public repos`;
+  const stars = stats.ownedRepos.reduce((sum, repo) => sum + repo.stargazers_count, 0);
   const allTimeCommits = stats.repoStats.reduce(
     (sum, entry) => sum + entry.allTimeCommits,
     0,
@@ -320,7 +489,7 @@ function renderStatsTable(stats) {
   );
 
   const allTimeRows = [
-    `📦 **${formatNumber(publicRepos)}** public repos`,
+    publicRepoLabel,
     `🔥 **${formatNumber(allTimeCommits)}** commits`,
     `📋 **${formatNumber(stats.allTimeIssues)}** issues`,
     `🔀 **${formatNumber(stats.allTimePrs)}** PRs`,
@@ -362,9 +531,19 @@ function renderActiveProjects(stats) {
     .map((entry) => {
       const added = latexDelta(entry.additions, "Green", "+");
       const removed = latexDelta(entry.deletions, "Red", "-");
-      return `- [${escapeMarkdown(entry.repo.name)}](${entry.repo.html_url}) - ${formatNumber(entry.lastYearCommits)} commits, ${added} / ${removed}`;
+      const repoLabel =
+        entry.repo.owner.login === USERNAME ? entry.repo.name : entry.repo.full_name;
+      return `- [${escapeMarkdown(repoLabel)}](${entry.repo.html_url}) - ${formatNumber(entry.lastYearCommits)} commits, ${added} / ${removed}`;
     })
     .join("\n");
+}
+
+function renderContributionScopeNote(stats) {
+  if (stats.discoveredOnlyRepos.length === 0) return "";
+
+  return `\n\n_Includes ${formatNumber(
+    stats.discoveredOnlyRepos.length,
+  )} public contribution repositories discovered from recent GitHub activity._`;
 }
 
 function renderReadme(stats) {
@@ -381,7 +560,7 @@ Joined GitHub **${joinedYears}** years ago.
 
 ## 📊 Stats
 
-${renderStatsTable(stats)}
+${renderStatsTable(stats)}${renderContributionScopeNote(stats)}
 
 ## 🚀 Most Active Projects (Last Year)
 
@@ -390,7 +569,7 @@ ${renderActiveProjects(stats)}${limitNote}
 ## 🤝 Connect with me
 
 [![X](https://img.shields.io/badge/X-000000?style=flat&logo=x&logoColor=white)](${X_URL})
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077b5?logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMjU2JyBoZWlnaHQ9JzI1NicgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnJyBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSd4TWlkWU1pZCcgdmlld0JveD0nMCAwIDI1NiAyNTYnPjxwYXRoIGQ9J00yMTguMTIzIDIxOC4xMjdoLTM3LjkzMXYtNTkuNDAzYzAtMTQuMTY1LS4yNTMtMzIuNC0xOS43MjgtMzIuNC0xOS43NTYgMC0yMi43NzkgMTUuNDM0LTIyLjc3OSAzMS4zNjl2NjAuNDNoLTM3LjkzVjk1Ljk2N2gzNi40MTN2MTYuNjk0aC41MWEzOS45MDcgMzkuOTA3IDAgMCAxIDM1LjkyOC0xOS43MzJjMzguNDQ1IDAgNDUuNTMzIDI1LjI4OCA0NS41MzMgNTguMTg2bC0uMDE2IDY3LjAxM1pNNTUuOTU1IDc5LjI3Yy0xMi4xNTcuMDAyLTIyLjAxNC05Ljg1Mi0yMi4wMTYtMjIuMDA5LS4wMDItMTIuMTU3IDkuODUxLTIyLjAxNCAyMi4wMDgtMjIuMDE2IDEyLjE1Ny0uMDAzIDIyLjAxNCA5Ljg1MSAyMi4wMTYgMjIuMDA4QTIyLjAxMyAyMi4wMTMgMCAwIDEgNTYuOTU1IDc5LjI3bTE4Ljk2NiAxMzguODU4SDM3Ljk1Vjk1Ljk2N2gzNy45N3YxMjIuMTZaTTIzNy4wMzMuMDE4SDE4Ljg5QzguNTgtLjA5OC4xMjUgOC4xNjEtLjAwMSAxOC40NzF2MjE5LjA1M2MuMTIyIDEwLjMxNSA4LjU3NiAxOC41ODIgMTguODkgMTguNDc0aDIxOC4xNDRjMTAuMzM2LjEyOCAxOC44MjMtOC4xMzkgMTguOTY2LTE4LjQ3NFYxOC40NTRjLS4xNDctMTAuMzMtOC42MzUtMTguNTg4LTE4Ljk2Ni0xOC40NTMnIGZpbGw9JyNmZmYnLz48L3N2Zz4K)](${LINKEDIN_URL})
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](${LINKEDIN_URL})
 
 <!-- This README is generated by scripts/generate-readme.mjs. -->
 `;
