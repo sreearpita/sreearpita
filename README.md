@@ -6,11 +6,11 @@ Joined GitHub **7** years ago.
 
 | All Time | Last Year | Top languages (last year) |
 |----------|-----------|---------------------------|
-| 📦 **25** public repos + **14** org repos tracked | 🔥 **183** commits | ![Java](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%23b07219&message=Java+42%25) |
-| 🔥 **214** commits | 📝 **0** issues | ![Dart](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%23858585&message=Dart+39%25) |
+| 📦 **25** public repos + **14** org repos tracked | 🔥 **186** commits | ![Java](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%23b07219&message=Java+43%25) |
+| 🔥 **217** commits | 📝 **0** issues | ![Dart](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%23858585&message=Dart+38%25) |
 | 📋 **0** issues | 🔀 **22** PRs | ![TypeScript](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%233178c6&message=TypeScript+8%25) |
-| 🔀 **23** PRs | $\color{Green}{\textsf{+78,530}}$ lines added | ![C++](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%23f34b7d&message=C%2B%2B+3%25) |
-| ⭐ **1** stars | $\color{Red}{\textsf{-32,787}}$ lines removed | ![CMake](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%23858585&message=CMake+2%25) |
+| 🔀 **23** PRs | $\color{Green}{\textsf{+80,872}}$ lines added | ![C++](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%23f34b7d&message=C%2B%2B+3%25) |
+| ⭐ **3** stars | $\color{Red}{\textsf{-32,830}}$ lines removed | ![CMake](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%23858585&message=CMake+2%25) |
 
 ## 🚀 Most Active Projects (Last Year)
 
@@ -19,9 +19,9 @@ Joined GitHub **7** years ago.
 - [NUS-MTechSE-DMSS/Swipe2eat_FlowDiagrams](https://github.com/NUS-MTechSE-DMSS/Swipe2eat_FlowDiagrams) - 15 commits, $\color{Green}{\textsf{+642}}$ / $\color{Red}{\textsf{-0}}$
 - [NUS-MTechSE-DMSS/user-service](https://github.com/NUS-MTechSE-DMSS/user-service) - 10 commits, $\color{Green}{\textsf{+1,927}}$ / $\color{Red}{\textsf{-1,248}}$
 - [nus-cicd-workshop](https://github.com/sreearpita/nus-cicd-workshop) - 8 commits, $\color{Green}{\textsf{+1,016}}$ / $\color{Red}{\textsf{-36}}$
-- [sreearpita](https://github.com/sreearpita/sreearpita) - 6 commits, $\color{Green}{\textsf{+721}}$ / $\color{Red}{\textsf{-28}}$
-- [Flowelle](https://github.com/sreearpita/Flowelle) - 6 commits, $\color{Green}{\textsf{+10,492}}$ / $\color{Red}{\textsf{-20,036}}$
-- [AI-Friend](https://github.com/sreearpita/AI-Friend) - 4 commits, $\color{Green}{\textsf{+2,912}}$ / $\color{Red}{\textsf{-165}}$
+- [Flowelle](https://github.com/sreearpita/Flowelle) - 7 commits, $\color{Green}{\textsf{+11,492}}$ / $\color{Red}{\textsf{-20,038}}$
+- [sreearpita](https://github.com/sreearpita/sreearpita) - 7 commits, $\color{Green}{\textsf{+726}}$ / $\color{Red}{\textsf{-33}}$
+- [AI-Friend](https://github.com/sreearpita/AI-Friend) - 5 commits, $\color{Green}{\textsf{+4,249}}$ / $\color{Red}{\textsf{-201}}$
 - [ProjectA](https://github.com/sreearpita/ProjectA) - 3 commits, $\color{Green}{\textsf{+2}}$ / $\color{Red}{\textsf{-0}}$
 - [swipe2eat-ui-railway](https://github.com/sreearpita/swipe2eat-ui-railway) - 3 commits, $\color{Green}{\textsf{+9,366}}$ / $\color{Red}{\textsf{-351}}$
 
