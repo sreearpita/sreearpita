@@ -3,7 +3,7 @@ name: Update profile README
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 2 * * 1"
+    - cron: "17 2 * * *"
 
 permissions:
   contents: write
