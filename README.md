@@ -6,17 +6,17 @@ Joined GitHub **7** years ago.
 
 | All Time | Last Year | Top languages (last year) |
 |----------|-----------|---------------------------|
-| 📦 **28** public repos + **15** org repos tracked | 🔥 **462** commits | ![Dart](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%23858585&message=Dart+46%25) |
-| 🔥 **496** commits | 📝 **0** issues | ![Java](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%23b07219&message=Java+38%25) |
+| 📦 **28** public repos + **15** org repos tracked | 🔥 **463** commits | ![Dart](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%23858585&message=Dart+46%25) |
+| 🔥 **497** commits | 📝 **0** issues | ![Java](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%23b07219&message=Java+38%25) |
 | 📋 **0** issues | 🔀 **25** PRs | ![TypeScript](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%233178c6&message=TypeScript+6%25) |
-| 🔀 **26** PRs | $\color{Green}{\textsf{+132,225}}$ lines added | ![C++](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%23f34b7d&message=C%2B%2B+3%25) |
-| ⭐ **3** stars | $\color{Red}{\textsf{-46,855}}$ lines removed | ![CMake](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%23858585&message=CMake+2%25) |
+| 🔀 **26** PRs | $\color{Green}{\textsf{+132,230}}$ lines added | ![C++](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%23f34b7d&message=C%2B%2B+3%25) |
+| ⭐ **3** stars | $\color{Red}{\textsf{-46,860}}$ lines removed | ![CMake](https://img.shields.io/static/v1?style=flat-square&label=%E2%A0%80&color=555&labelColor=%23858585&message=CMake+2%25) |
 
 _Includes 1 public contribution repositories discovered from recent GitHub activity._
 
 ## 🚀 Most Active Projects (Last Year)
 
-- [sreearpita](https://github.com/sreearpita/sreearpita) - 159 commits, $\color{Green}{\textsf{+1,500}}$ / $\color{Red}{\textsf{-805}}$
+- [sreearpita](https://github.com/sreearpita/sreearpita) - 160 commits, $\color{Green}{\textsf{+1,505}}$ / $\color{Red}{\textsf{-810}}$
 - [nus-architecting-scalable-systems/swipe2eat-ui](https://github.com/nus-architecting-scalable-systems/swipe2eat-ui) - 110 commits, $\color{Green}{\textsf{+43,506}}$ / $\color{Red}{\textsf{-12,867}}$
 - [NUS-MTechSE-DMSS/swipe2eat-ui](https://github.com/NUS-MTechSE-DMSS/swipe2eat-ui) - 101 commits, $\color{Green}{\textsf{+42,184}}$ / $\color{Red}{\textsf{-9,129}}$
 - [sreearpita.github.io](https://github.com/sreearpita/sreearpita.github.io) - 19 commits, $\color{Green}{\textsf{+8,021}}$ / $\color{Red}{\textsf{-1,767}}$
